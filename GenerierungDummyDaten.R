@@ -35,61 +35,76 @@ df_wege <- data.frame(pers_id = pers_id, hh_nr = hh_nr, pers_nr = pers_nr, hh_bd
                         weg_laenge = weg_laenge, weg_hochrechnungsfaktor = weg_hochrechnungsfaktor)
 
 #hh_nr generieren
-for(i in 1:num){
+for(i in 1:nrow(df_wege)){   #Durchläuft den gesamten Datensatz       
   
-  if(i == 1){
-    j <- 1
-    k <- 1
-    rand <- sample(5:20,1)  #Anzahl an Wegen (Zeilen) je Haushalt
+  if(i == 1){                #Beim ersten Durchlauf der Schleife
+    rand <- sample(5:20,1)     #Anzahl an Wegen (Zeilen) je Haushalt
+    j <- 1                     #Zaehlvariable für die Zeilen je Haushalt
+    k <- 1                     #Zaehlvariable für die Haushaltsnummer
   }
   
-  if(j <= rand){
-    j <- j + 1 
-    df_wege$hh_nr[i] <- k
-  }else{
-    j <- 1
-    k <- k+1
-    rand <- sample(5:20,1)  
-    df_wege$hh_nr[i] <- k
+  if(j <= rand){            #Überprüft ob es noch immer der selbe Haushalt ist (dann wid k nicht inkrementiert)
+    j <- j + 1                 #Zählt die Zeilen innerhalb eines Haushaltes mit 
+    df_wege$hh_nr[i] <- k      #Weist der entsprechenden Datenzeile die aktuelle Haushaltsnummer zu
+  }else{                    #Wird die Anzahl an Zeilen des aktuellen Haushalts überschritten/wird ein neuer Haushalt erreich
+    j <- 1                     #Zählvariable für die Zeilen des akteullen Haushalt wird auf 1 zurückgesetzt
+    k <- k+1                   #Haushaltsnummer wird um +1 inkrementiert
+    rand <- sample(5:20,1)     #neue Anzahl an Zeilen des genenerierten Haushalts
+    df_wege$hh_nr[i] <- k      #weist der Zeile die aktuelle/zugehörige Haushaltsnummer zu
   }
 
 }
 
 #pers_nr generieren
-for(i in 1:max(df_wege$hh_nr)){
-  k <- 1
+for(i in 1:max(df_wege$hh_nr)){     #Duchläuft die Anzahl an Haushalten im Datensatz (Aktueller Haushalt entspricht i)
+  k <- 1                                #
   num_hhrows <- nrow(df_wege[df_wege$hh_nr == i,])  #Anzahl der Reihen je Haushalt
-  rand <- sample(1:4,1)   #Anzahl an Personen je Haushalt
+  rand <- sample(1:4,1)                 #Anzahl an Personen je Haushalt
   
-  for(j in 1:num_hhrows){
-    
-    if(j == 1 ){
+  for(j in 1:num_hhrows){               #Durchläuft die Zeilen (j) des aktuellen Haushalts (i)
+    if(j == 1 ){                            #in der ersten Zeile des Haushalts wird die Zählvariable l auf 1 gesetzt
       l <- 1
     }
     
-    if(l < (num_hhrows/rand)){
-      df_wege[df_wege$hh_nr == i,]$pers_nr[j] <- k
-      l <- l+1
-    }else{
-      l <- 1
-      k <- k+1
-      df_wege[df_wege$hh_nr == i,]$pers_nr[j] <- k
+    if(l < (num_hhrows/rand)){                        #Teilt die Reihen pro Haushalt mit der zufälligen Anzahl an darin lebenden Personen gleichmäßig auf
+      df_wege[df_wege$hh_nr == i,]$pers_nr[j] <- k        #weist der aktuellen Zeile eine Personennummer (k) zu
+      l <- l+1                                            #Zählvariable wird erhöht um die Zeilen pro Person zu kontrollieren
+    }else{                                            #Alle einer Person im HH zugewiesenen Zeilen sind erschöpft aber es gibt noch weitere Personen im Haushalt
+      l <- 1                                              #Zählvariable für die Zeilen pro Person im HH wird auf 1 zurückgesetzt
+      k <- k+1                                            #Personennummer je Haushalt wird um 1 inkrementiert
+      df_wege[df_wege$hh_nr == i,]$pers_nr[j] <- k        #Inkrementierte Personennummer wird der aktuellen Zeile zugewiesen
     }
   }
 }
 
 #hh_wohnbdl generieren
-for(i in 1:max(df_wege$hh_nr)){
-  rand <- sample(1:9,1) #Zufällige Kennzahl für eines von neun Bundesländern
-  df_wege[df_wege$hh_nr == i,]$hh_bdl <- rand
+for(i in 1:max(df_wege$hh_nr)){                 #Durchläuft alle Haushalte im Datensatz
+  rand <- sample(1:9,1)                             #Zufällige Kennzahl für eines von neun Bundesländern
+  df_wege[df_wege$hh_nr == i,]$hh_bdl <- rand       #Weist allen Datenzeilen des aktuellen Haushalts (i) die zufällige Bundesländerkennzahl zu
 }
 
 #hh_wohnraumtyp generieren
-for(i in 1:max(df_wege$hh_nr)){
-  rand <- sample(1:4,1) #Zufällige Kennzahl für einen Raumtyp (z.B.: Großstadt, Stadt, Umland, Peripherie)
-  df_wege[df_wege$hh_nr == i,]$hh_raumtyp <- rand
+for(i in 1:max(df_wege$hh_nr)){                 #Durchläuft alle Haushalte im Datensatz
+  rand <- sample(1:4,1)                             #Zufällige Kennzahl für einen Raumtyp (z.B.: Großstadt, Stadt, Umland, Peripherie)
+  df_wege[df_wege$hh_nr == i,]$hh_raumtyp <- rand   #Weist allen Datenzeilen des aktuellen Haushalts (i) den zufälligen Wohnraumtyp zu
 }
 
 #weg_nr generieren
-
+weg_nr_pers <- 1                         #Initialisierung für die Wegenummer pro Person
+for(i in 1:nrow(df_wege)){               #Durchlaeuft alle Zeilen des Datensatzes
+  if(i == 1){                               #Erster Schleifendurchlauf
+    #last_row <- 1                          #Zählvariable die im weiteren Durchlauf i-1 entspricht
+    df_wege$weg_nr[i] <- 1                  #Setzt den ersten Weg im Datensatz auf Wegnr 1
+  }else{                                  #betrifft alle Schleifendurchläufe außer den ersten
+    last_pers_nr <- df_wege$pers_nr[i-1]    #Personennummer in der vorherigen Zeile
+    act_pers_nr <- df_wege$pers_nr[i]       #Personennummer der aktuellen Zeil
+    if(last_pers_nr == act_pers_nr){      #Wenn die Personenummer in einer neuen Zeile gleich bleibt steigt die Wegenummer
+      weg_nr_pers <- weg_nr_pers + 1        #Wegenummer pro Person wird erhöht
+      df_wege$weg_nr[i] <- weg_nr_pers
+    }else{                                #Personennummer neuen Zeile ändert sich (es wird eine neue Person behandelt)
+      weg_nr_pers <- 1                      #Wegnummer pro Person wird wieder auf 1 gesetzt
+      df_wege$weg_nr[i] <- weg_nr_pers
+    }
+  }
+}
 
