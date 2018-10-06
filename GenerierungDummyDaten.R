@@ -170,6 +170,9 @@ for(i in 1:nrow(df_wege)){                                  #Durchläuft alle Ze
     df_wege$weg_startzeit[i] <- funct_weg_startzeit(9,23)
   }
 }
+df_wege$weg_startzeit <- strptime(df_wege$weg_startzeit, '%H:%M')   #Wandelt die Startzeit vom String in ein Time-Format um
 
 #Schleife zum sortieren der Beginnzeiten je Person
-
+for(i in 1:max(df_wege$pers_id)){                         #Durchläuft jede im Datensatz vorhandene Person
+  df_wege[df_wege$pers_id == i,]$weg_startzeit <- sort(df_wege[df_wege$pers_id == i,]$weg_startzeit)  #Sortiert die Beginnzeiten der Wege pro Person in aufsteigender Reihenfolge
+}
